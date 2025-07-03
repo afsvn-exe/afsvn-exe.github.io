@@ -5,11 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Biotech Security Division - Systems Research">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta name="referrer" content="no-referrer">
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    
     <title>REVERSE ENGINEER | Biotech Security Division</title>
     <style>
         * {
@@ -31,7 +37,7 @@
         }
 
         body {
-            font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             overflow-x: hidden;
@@ -70,7 +76,7 @@
         }
 
         /* Allow text selection in content areas */
-        .about-text, .project-description, .module-list {
+        .about-text, .project-description, .module-list, .blog-excerpt, .blog-article {
             -webkit-user-select: text;
             -moz-user-select: text;
             -ms-user-select: text;
@@ -113,106 +119,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            perspective: 1000px;
         }
 
-        .dna-container {
-            width: 600px;
-            height: 800px;
-            position: relative;
-            transform-style: preserve-3d;
-            animation: rotateHelix 40s linear infinite;
-        }
-
-        @keyframes rotateHelix {
-            0% { transform: rotateY(0deg) rotateX(15deg); }
-            100% { transform: rotateY(360deg) rotateX(15deg); }
-        }
-
-        .helix-strand {
+        #dna-canvas {
             position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            transform-style: preserve-3d;
-        }
-
-        .code-particle {
-            position: absolute;
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
-            font-size: 10px;
-            padding: 2px 6px;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            white-space: nowrap;
-            opacity: 0;
-            animation: particleFade 4s ease-in-out infinite;
-            pointer-events: none;
-            border: 1px solid;
-            letter-spacing: 0.5px;
-        }
-
-        @keyframes particleFade {
-            0%, 100% { opacity: 0; transform: scale(0.8); }
-            50% { opacity: 0.8; transform: scale(1); }
-        }
-
-        .code-particle.exploit {
-            color: var(--accent-red);
-            border-color: var(--accent-red);
-            text-shadow: 0 0 10px rgba(204, 0, 32, var(--glow-intensity));
-        }
-
-        .code-particle.asm {
-            color: var(--accent-bio);
-            border-color: var(--accent-bio);
-            text-shadow: 0 0 10px rgba(0, 170, 136, var(--glow-intensity));
-        }
-
-        .code-particle.graphics {
-            color: var(--accent-green);
-            border-color: var(--accent-green);
-            text-shadow: 0 0 10px rgba(0, 204, 65, var(--glow-intensity));
-        }
-
-        /* Glitch effect for particles */
-        @keyframes glitch {
-            0%, 100% {
-                transform: translate(0);
-                filter: hue-rotate(0deg);
-            }
-            20% {
-                transform: translate(-1px, 1px);
-                filter: hue-rotate(90deg);
-            }
-            40% {
-                transform: translate(1px, -1px);
-                filter: hue-rotate(180deg);
-            }
-            60% {
-                transform: translate(-1px, -1px);
-                filter: hue-rotate(270deg);
-            }
-            80% {
-                transform: translate(1px, 1px);
-                filter: hue-rotate(360deg);
-            }
-        }
-
-        .code-particle.glitch {
-            animation: particleFade 4s ease-in-out infinite, glitch 0.2s ease infinite;
-        }
-
-        .helix-connector {
-            position: absolute;
-            height: 1px;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(204, 0, 32, 0.3),
-                rgba(0, 204, 65, 0.3),
-                transparent);
-            transform-origin: left center;
-            opacity: 0.3;
         }
 
         /* Hero Content */
@@ -221,11 +135,89 @@
             text-align: center;
             z-index: 10;
             padding: 60px;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(20px) saturate(0.8);
-            -webkit-backdrop-filter: blur(20px) saturate(0.8);
-            border: 1px solid var(--border);
             max-width: 800px;
+        }
+
+        /* Biohazard warning strips */
+        .hero-content::before,
+        .hero-content::after {
+            content: '';
+            position: absolute;
+            left: -100%;
+            right: -100%;
+            height: 2px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--accent-red) 0px,
+                var(--accent-red) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            opacity: 0.3;
+            animation: warningPulse 3s ease-in-out infinite;
+        }
+
+        .hero-content::before {
+            top: 0;
+        }
+
+        .hero-content::after {
+            bottom: 0;
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Biohazard corner markers */
+        .biohazard-corners {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .biohazard-corners::before,
+        .biohazard-corners::after,
+        .biohazard-corners span::before,
+        .biohazard-corners span::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--accent-red);
+            opacity: 0.4;
+        }
+
+        .biohazard-corners::before {
+            top: -10px;
+            left: -10px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .biohazard-corners::after {
+            top: -10px;
+            right: -10px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .biohazard-corners span::before {
+            bottom: -10px;
+            left: -10px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .biohazard-corners span::after {
+            bottom: -10px;
+            right: -10px;
+            border-left: none;
+            border-top: none;
         }
 
         .corp-logo {
@@ -250,12 +242,43 @@
         }
 
         .hero-title {
-            font-size: 3rem;
-            font-weight: 100;
-            letter-spacing: 0.8rem;
+            font-size: 3.5rem;
+            font-weight: 200;
+            letter-spacing: 1.2rem;
             margin-bottom: 2rem;
             position: relative;
             overflow: hidden;
+            font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+            text-transform: uppercase;
+            text-shadow: 
+                0 0 20px rgba(204, 0, 32, 0.5),
+                0 0 40px rgba(204, 0, 32, 0.3),
+                0 0 60px rgba(204, 0, 32, 0.1);
+        }
+
+        .hero-title::before {
+            content: '⚠ ';
+            position: absolute;
+            left: -60px;
+            color: var(--accent-red);
+            opacity: 0.3;
+            font-size: 2rem;
+            animation: hazardBlink 2s ease-in-out infinite;
+        }
+
+        .hero-title::after {
+            content: ' ⚠';
+            position: absolute;
+            right: -60px;
+            color: var(--accent-red);
+            opacity: 0.3;
+            font-size: 2rem;
+            animation: hazardBlink 2s ease-in-out infinite;
+        }
+
+        @keyframes hazardBlink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
         }
 
         .hero-title .text {
@@ -277,21 +300,34 @@
         }
 
         .hero-subtitle {
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: var(--text-secondary);
-            letter-spacing: 0.3rem;
+            letter-spacing: 0.5rem;
             text-transform: uppercase;
             margin-bottom: 30px;
+            font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+            font-weight: 300;
+            position: relative;
+        }
+
+        .hero-subtitle::before,
+        .hero-subtitle::after {
+            content: '◆';
+            color: var(--accent-red);
+            opacity: 0.5;
+            margin: 0 15px;
+            font-size: 0.8rem;
         }
 
         .tech-stack {
             display: flex;
             justify-content: center;
             gap: 30px;
-            font-family: 'SF Mono', monospace;
-            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 0.1rem;
+            letter-spacing: 0.2rem;
+            font-weight: 400;
         }
 
         .tech-item {
@@ -400,7 +436,7 @@
             font-size: 0.7rem;
             color: var(--accent-red);
             margin-right: 20px;
-            font-family: 'SF Mono', monospace;
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
             opacity: 0.6;
         }
 
@@ -441,7 +477,7 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             padding: 30px;
-            font-family: 'SF Mono', monospace;
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
             font-size: 0.85rem;
         }
 
@@ -565,7 +601,7 @@
             font-size: 0.8rem;
             color: var(--accent-red);
             margin-bottom: 15px;
-            font-family: 'SF Mono', monospace;
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
             opacity: 0.7;
         }
 
@@ -579,9 +615,197 @@
         .tech-stack-inline {
             display: flex;
             gap: 15px;
-            font-family: 'SF Mono', monospace;
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
             font-size: 0.75rem;
             color: var(--text-secondary);
+        }
+
+        /* Blog Section */
+        .blog-grid {
+            display: grid;
+            gap: 30px;
+        }
+
+        .blog-post {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 40px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blog-post::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-red);
+            transition: left 0.5s ease;
+        }
+
+        .blog-post:hover {
+            border-color: rgba(204, 0, 32, 0.3);
+            transform: translateX(5px);
+        }
+
+        .blog-post:hover::before {
+            left: 0;
+        }
+
+        .blog-date {
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent-red);
+            opacity: 0.7;
+            margin-bottom: 15px;
+        }
+
+        .blog-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+            letter-spacing: 0.1rem;
+            color: var(--text-primary);
+        }
+
+        .blog-excerpt {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .blog-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .blog-tag {
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent-bio);
+            padding: 3px 10px;
+            border: 1px solid var(--accent-bio);
+            opacity: 0.7;
+        }
+
+        .blog-loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 60px;
+        }
+
+        /* Blog Post Modal */
+        .blog-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .blog-modal-content {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 50px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .blog-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .blog-close:hover {
+            color: var(--accent-red);
+        }
+
+        .blog-article {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .blog-article h1, .blog-article h2, .blog-article h3 {
+            color: var(--text-primary);
+            margin: 30px 0 20px 0;
+            font-weight: 300;
+            letter-spacing: 0.1rem;
+        }
+
+        .blog-article h1 { font-size: 2rem; }
+        .blog-article h2 { font-size: 1.5rem; }
+        .blog-article h3 { font-size: 1.2rem; }
+
+        .blog-article p {
+            margin-bottom: 20px;
+        }
+
+        .blog-article code {
+            background: var(--bg-secondary);
+            padding: 2px 6px;
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            color: var(--accent-green);
+            font-size: 0.9rem;
+        }
+
+        .blog-article pre {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 20px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .blog-article pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-secondary);
+        }
+
+        .blog-article blockquote {
+            border-left: 3px solid var(--accent-red);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .blog-article a {
+            color: var(--accent-red);
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .blog-article a:hover {
+            opacity: 0.7;
+        }
+
+        .blog-article ul, .blog-article ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .blog-article li {
+            margin-bottom: 10px;
         }
 
         /* Contact - Ultra Minimal */
@@ -697,6 +921,7 @@
                 <li><a href="#about" class="nav-link">About</a></li>
                 <li><a href="#skills" class="nav-link">Skills</a></li>
                 <li><a href="#projects" class="nav-link">Projects</a></li>
+                <li><a href="#blog" class="nav-link">Blog</a></li>
                 <li><a href="#contact" class="nav-link">Contact</a></li>
             </ul>
         </div>
@@ -704,14 +929,11 @@
 
     <section class="hero">
         <div class="dna-wrapper">
-            <div class="dna-container" id="dna-container">
-                <div class="helix-strand" id="helix-strand">
-                    <!-- DNA particles will be generated here -->
-                </div>
-            </div>
+            <canvas id="dna-canvas"></canvas>
         </div>
         
         <div class="hero-content">
+            <div class="biohazard-corners"><span></span></div>
             <div class="corp-logo">
                 <svg class="biohazard-symbol" viewBox="0 0 100 100" aria-hidden="true">
                     <path d="M50 30 C40 30, 30 20, 30 10 C30 5, 35 0, 40 0 C45 0, 50 5, 50 10 C50 5, 55 0, 60 0 C65 0, 70 5, 70 10 C70 20, 60 30, 50 30 Z" fill="currentColor" transform="rotate(0 50 50)"/>
@@ -873,9 +1095,24 @@
             </div>
         </section>
 
-        <section id="contact" class="section">
+        <section id="blog" class="section">
             <div class="section-header">
                 <span class="section-number">04</span>
+                <h2 class="section-title">Research Logs</h2>
+                <div class="section-line"></div>
+            </div>
+            
+            <div class="blog-grid" id="blog-container">
+                <!-- Blog posts will be loaded here -->
+                <div class="blog-loading">
+                    <p>Loading research logs...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="section">
+            <div class="section-header">
+                <span class="section-number">05</span>
                 <h2 class="section-title">Contact</h2>
                 <div class="section-line"></div>
             </div>
@@ -898,10 +1135,22 @@
         <p>BIOTECH SECURITY DIVISION © 2025</p>
     </footer>
 
+    <!-- Blog Modal -->
+    <div class="blog-modal" id="blogModal">
+        <div class="blog-modal-content">
+            <span class="blog-close" id="blogClose">&times;</span>
+            <article class="blog-article" id="blogArticle">
+                <!-- Markdown content will be rendered here -->
+            </article>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         'use strict';
 
-        // Secure initialization
+        // Secure initialization with IIFE
         (function() {
             // Disable developer tools in production
             const disableDevTools = () => {
@@ -967,103 +1216,971 @@
                 setTimeout(type, 1000);
             };
 
-            // DNA Helix with infinite loop and glitch
-            const createDNAHelix = () => {
-                const container = document.getElementById('helix-strand');
+            // Three.js DNA Helix
+            const initThreeDNA = () => {
+                // Check if Three.js is loaded
+                if (typeof THREE === 'undefined') {
+                    console.error('Three.js not loaded');
+                    return;
+                }
+
+                const canvas = document.getElementById('dna-canvas');
+                const scene = new THREE.Scene();
+                scene.fog = new THREE.Fog(0x000000, 100, 1000);
+
+                // Camera
+                const camera = new THREE.PerspectiveCamera(
+                    75,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    1000
+                );
+                camera.position.z = 150;
+                camera.position.y = 0;
+
+                // Renderer
+                const renderer = new THREE.WebGLRenderer({
+                    canvas: canvas,
+                    antialias: true,
+                    alpha: true
+                });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setClearColor(0x000000, 0);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+                scene.add(ambientLight);
+
+                const pointLight1 = new THREE.PointLight(0xcc0020, 1, 200);
+                pointLight1.position.set(50, 50, 50);
+                scene.add(pointLight1);
+
+                const pointLight2 = new THREE.PointLight(0x00aa88, 1, 200);
+                pointLight2.position.set(-50, -50, -50);
+                scene.add(pointLight2);
+
+                // DNA Helix Group
+                const dnaGroup = new THREE.Group();
+                scene.add(dnaGroup);
+
+                // Code snippets for particles
                 const codeSnippets = {
                     exploit: [
-                        'VirtualProtect(addr, size, PAGE_EXECUTE_READWRITE, &old);',
-                        'NtAllocateVirtualMemory(process, &base, 0, &size, MEM_COMMIT, PAGE_EXECUTE);',
-                        'mov rax, [gs:0x60]; mov rcx, [rax+0x18];',
-                        'CreateRemoteThread(hProcess, NULL, 0, addr, param, 0, NULL);',
-                        'RtlCopyMemory(buffer, shellcode, sizeof(shellcode));'
+                        'VirtualProtect',
+                        'NtAllocateVirtualMemory',
+                        'CreateRemoteThread',
+                        'WriteProcessMemory',
+                        'SetThreadContext'
                     ],
                     asm: [
-                        'push rbp; mov rbp, rsp',
+                        'mov rax, [gs:0x60]',
                         'syscall',
-                        'xor rax, rax; ret',
-                        'jmp qword ptr [rax]',
-                        'mov cr0, rax'
+                        'xor rax, rax',
+                        'jmp qword ptr',
+                        'push rbp'
                     ],
                     graphics: [
-                        'glCreateShader(GL_FRAGMENT_SHADER);',
-                        'vkCreateGraphicsPipelines(device, cache, 1, &info, NULL, &pipeline);',
-                        'glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);',
-                        'vkCmdBeginRenderPass(cmd, &info, VK_SUBPASS_CONTENTS_INLINE);',
-                        'glBindFramebuffer(GL_FRAMEBUFFER, fbo);'
+                        'glCreateShader',
+                        'vkCreatePipeline',
+                        'glDrawElements',
+                        'vkCmdBeginRenderPass',
+                        'glBindFramebuffer'
                     ]
                 };
 
-                const numParticles = 36;
-                const radius = 200;
+                // Create DNA strands
+                const strandCount = 50;
+                const radius = 30;
+                const height = 300;
+                const strands = [];
 
-                // Create particles for continuous helix
-                for (let i = 0; i < numParticles; i++) {
-                    const angle = (i / numParticles) * Math.PI * 4;
-                    const y = (i / numParticles) * 800;
-                    
-                    // Three strands
-                    for (let strand = 0; strand < 3; strand++) {
-                        const strandAngle = angle + (strand * 2 * Math.PI / 3);
-                        const x = Math.sin(strandAngle) * radius;
-                        const z = Math.cos(strandAngle) * radius;
-                        
-                        const particle = document.createElement('div');
-                        particle.className = 'code-particle';
-                        
-                        // Assign code type
-                        let codeType, snippets;
-                        if (strand === 0) {
-                            codeType = 'exploit';
-                            snippets = codeSnippets.exploit;
-                        } else if (strand === 1) {
-                            codeType = 'asm';
-                            snippets = codeSnippets.asm;
-                        } else {
-                            codeType = 'graphics';
-                            snippets = codeSnippets.graphics;
-                        }
-                        
-                        particle.classList.add(codeType);
-                        particle.textContent = snippets[i % snippets.length];
-                        
-                        // Position
-                        particle.style.left = `${300 + x}px`;
-                        particle.style.top = `${y}px`;
-                        particle.style.transform = `translateZ(${z}px)`;
-                        
-                        // Stagger animations
-                        particle.style.animationDelay = `${(i / numParticles) * 4}s`;
-                        
-                        // Random glitch effect
-                        if (Math.random() < 0.1) {
-                            particle.classList.add('glitch');
-                        }
-                        
-                        container.appendChild(particle);
-                    }
-                    
-                    // Add connectors
+                // Materials for different code types
+                const materials = {
+                    exploit: new THREE.MeshPhongMaterial({
+                        color: 0xcc0020,
+                        emissive: 0x440000,
+                        shininess: 100,
+                        transparent: true,
+                        opacity: 0.9
+                    }),
+                    asm: new THREE.MeshPhongMaterial({
+                        color: 0x00aa88,
+                        emissive: 0x004400,
+                        shininess: 100,
+                        transparent: true,
+                        opacity: 0.9
+                    }),
+                    graphics: new THREE.MeshPhongMaterial({
+                        color: 0x00cc41,
+                        emissive: 0x004400,
+                        shininess: 100,
+                        transparent: true,
+                        opacity: 0.9
+                    })
+                };
+
+                // Create spheres for DNA backbone
+                for (let i = 0; i < strandCount; i++) {
+                    const t = (i / strandCount) * Math.PI * 4;
+                    const y = (i / strandCount) * height - height / 2;
+
+                    // Left strand
+                    const leftX = Math.sin(t) * radius;
+                    const leftZ = Math.cos(t) * radius;
+
+                    const leftGeometry = new THREE.SphereGeometry(3, 16, 16);
+                    const leftType = i % 3 === 0 ? 'exploit' : i % 3 === 1 ? 'asm' : 'graphics';
+                    const leftSphere = new THREE.Mesh(leftGeometry, materials[leftType]);
+                    leftSphere.position.set(leftX, y, leftZ);
+                    dnaGroup.add(leftSphere);
+                    strands.push({ mesh: leftSphere, type: leftType });
+
+                    // Right strand
+                    const rightX = Math.sin(t + Math.PI) * radius;
+                    const rightZ = Math.cos(t + Math.PI) * radius;
+
+                    const rightGeometry = new THREE.SphereGeometry(3, 16, 16);
+                    const rightType = i % 3 === 2 ? 'exploit' : i % 3 === 0 ? 'asm' : 'graphics';
+                    const rightSphere = new THREE.Mesh(rightGeometry, materials[rightType]);
+                    rightSphere.position.set(rightX, y, rightZ);
+                    dnaGroup.add(rightSphere);
+                    strands.push({ mesh: rightSphere, type: rightType });
+
+                    // Connectors
                     if (i % 3 === 0) {
-                        const connector = document.createElement('div');
-                        connector.className = 'helix-connector';
-                        connector.style.width = `${radius * 2}px`;
-                        connector.style.left = `${300 - radius}px`;
-                        connector.style.top = `${y}px`;
-                        connector.style.transform = `rotateY(${angle}rad)`;
-                        container.appendChild(connector);
+                        const connectorGeometry = new THREE.CylinderGeometry(0.5, 0.5, radius * 2, 8);
+                        const connectorMaterial = new THREE.MeshPhongMaterial({
+                            color: 0xcc0020,
+                            emissive: 0x220000,
+                            transparent: true,
+                            opacity: 0.3
+                        });
+                        const connector = new THREE.Mesh(connectorGeometry, connectorMaterial);
+                        connector.position.set(0, y, 0);
+                        connector.rotation.z = Math.PI / 2;
+                        connector.rotation.y = t;
+                        dnaGroup.add(connector);
                     }
                 }
 
-                // Clone particles for seamless loop
-                const particles = container.querySelectorAll('.code-particle');
-                particles.forEach(particle => {
-                    const clone = particle.cloneNode(true);
-                    const currentTop = parseFloat(particle.style.top);
-                    clone.style.top = `${currentTop + 800}px`;
-                    container.appendChild(clone);
+                // Create floating code particles
+                const particleCount = 20;
+                const particles = [];
+                const loader = new THREE.FontLoader();
+                
+                // Use simple boxes for text representation
+                for (let i = 0; i < particleCount; i++) {
+                    const type = ['exploit', 'asm', 'graphics'][Math.floor(Math.random() * 3)];
+                    const geometry = new THREE.BoxGeometry(20, 3, 0.5);
+                    const material = new THREE.MeshPhongMaterial({
+                        color: type === 'exploit' ? 0xcc0020 : type === 'asm' ? 0x00aa88 : 0x00cc41,
+                        emissive: type === 'exploit' ? 0x440000 : type === 'asm' ? 0x004444 : 0x004400,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    
+                    const particle = new THREE.Mesh(geometry, material);
+                    particle.position.set(
+                        (Math.random() - 0.5) * 200,
+                        (Math.random() - 0.5) * 300,
+                        (Math.random() - 0.5) * 100
+                    );
+                    particle.rotation.set(
+                        Math.random() * Math.PI,
+                        Math.random() * Math.PI,
+                        Math.random() * Math.PI
+                    );
+                    
+                    particles.push({
+                        mesh: particle,
+                        velocity: {
+                            x: (Math.random() - 0.5) * 0.2,
+                            y: (Math.random() - 0.5) * 0.2,
+                            z: (Math.random() - 0.5) * 0.2
+                        },
+                        rotationSpeed: {
+                            x: (Math.random() - 0.5) * 0.01,
+                            y: (Math.random() - 0.5) * 0.01,
+                            z: (Math.random() - 0.5) * 0.01
+                        }
+                    });
+                    
+                    scene.add(particle);
+                }
+
+                // Animation
+                const animate = () => {
+                    requestAnimationFrame(animate);
+
+                    // Rotate DNA
+                    dnaGroup.rotation.y += 0.005;
+
+                    // Animate strands with sine wave
+                    strands.forEach((strand, i) => {
+                        const time = Date.now() * 0.001;
+                        strand.mesh.scale.x = 1 + Math.sin(time + i * 0.1) * 0.2;
+                        strand.mesh.scale.y = 1 + Math.sin(time + i * 0.1) * 0.2;
+                        strand.mesh.scale.z = 1 + Math.sin(time + i * 0.1) * 0.2;
+                    });
+
+                    // Animate particles
+                    particles.forEach(particle => {
+                        particle.mesh.position.x += particle.velocity.x;
+                        particle.mesh.position.y += particle.velocity.y;
+                        particle.mesh.position.z += particle.velocity.z;
+
+                        particle.mesh.rotation.x += particle.rotationSpeed.x;
+                        particle.mesh.rotation.y += particle.rotationSpeed.y;
+                        particle.mesh.rotation.z += particle.rotationSpeed.z;
+
+                        // Wrap around
+                        if (particle.mesh.position.x > 100) particle.mesh.position.x = -100;
+                        if (particle.mesh.position.x < -100) particle.mesh.position.x = 100;
+                        if (particle.mesh.position.y > 150) particle.mesh.position.y = -150;
+                        if (particle.mesh.position.y < -150) particle.mesh.position.y = 150;
+                        if (particle.mesh.position.z > 50) particle.mesh.position.z = -50;
+                        if (particle.mesh.position.z < -50) particle.mesh.position.z = 50;
+                    });
+
+                    // Glitch effect occasionally
+                    if (Math.random() < 0.01) {
+                        const glitchStrand = strands[Math.floor(Math.random() * strands.length)];
+                        glitchStrand.mesh.scale.set(2, 2, 2);
+                        setTimeout(() => {
+                            glitchStrand.mesh.scale.set(1, 1, 1);
+                        }, 100);
+                    }
+
+                    renderer.render(scene, camera);
+                };
+
+                // Handle resize
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                // Mouse interaction
+                let mouseX = 0;
+                let mouseY = 0;
+
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+                    
+                    camera.position.x = mouseX * 30;
+                    camera.position.y = mouseY * 30;
+                    camera.lookAt(scene.position);
+                });
+
+                animate();
+            };
+
+            // Blog System
+            const blogPosts = [
+                {
+                    id: 1,
+                    date: '2025-01-15',
+                    title: 'Advanced ROP Chain Construction',
+                    excerpt: 'Deep dive into Return-Oriented Programming techniques for modern Windows systems with CFG enabled...',
+                    tags: ['exploit-dev', 'windows', 'rop'],
+                    markdown: `# Advanced ROP Chain Construction
+
+## Introduction
+
+Return-Oriented Programming (ROP) remains one of the most powerful exploitation techniques for bypassing modern security mitigations. This post explores advanced ROP chain construction techniques for Windows 10/11 systems with Control Flow Guard (CFG) enabled.
+
+## Understanding the Basics
+
+ROP allows us to execute arbitrary code by chaining together small sequences of instructions (gadgets) that end with a return instruction. Here's a basic example:
+
+\`\`\`asm
+; Classic ROP gadget
+pop rdi
+ret
+
+; Another useful gadget
+mov rax, rdi
+ret
+\`\`\`
+
+## Finding Gadgets
+
+The first step in ROP chain construction is identifying useful gadgets. I use a custom tool written in C++ that leverages the Capstone disassembly engine:
+
+\`\`\`cpp
+void find_gadgets(uint8_t* module_base, size_t module_size) {
+    cs_insn *insn;
+    size_t count;
+    
+    if (cs_disasm(handle, module_base, module_size, 0, 0, &insn, &count) > 0) {
+        for (size_t i = 0; i < count; i++) {
+            if (is_gadget_useful(&insn[i])) {
+                store_gadget(&insn[i]);
+            }
+        }
+        cs_free(insn, count);
+    }
+}
+\`\`\`
+
+## Bypassing CFG
+
+Control Flow Guard presents unique challenges for ROP exploitation. The key is to identify CFG-valid indirect call targets...
+
+[Continue with more technical content]`
+                },
+                {
+                    id: 2,
+                    date: '2025-01-10',
+                    title: 'Vulkan Memory Management Internals',
+                    excerpt: 'Exploring efficient memory allocation strategies for high-performance Vulkan applications...',
+                    tags: ['graphics', 'vulkan', 'optimization'],
+                    markdown: `# Vulkan Memory Management Internals
+
+Understanding Vulkan's memory management is crucial for high-performance graphics applications...`
+                },
+                {
+                    id: 3,
+                    date: '2025-01-05',
+                    title: 'Kernel Driver Fuzzing Techniques',
+                    excerpt: 'Automated vulnerability discovery in Windows kernel drivers using coverage-guided fuzzing...',
+                    tags: ['fuzzing', 'kernel', 'windows'],
+                    markdown: `# Kernel Driver Fuzzing Techniques
+
+This post covers advanced techniques for fuzzing Windows kernel drivers...`
+                }
+            ];
+
+            // Load blog posts
+            const loadBlogPosts = () => {
+                const container = document.getElementById('blog-container');
+                container.innerHTML = '';
+                
+                blogPosts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'blog-post';
+                    postElement.innerHTML = `
+                        <div class="blog-date">${post.date}</div>
+                        <h3 class="blog-title">${post.title}</h3>
+                        <p class="blog-excerpt">${post.excerpt}</p>
+                        <div class="blog-tags">
+                            ${post.tags.map(tag => `<span class="blog-tag">#${tag}</span>`).join('')}
+                        </div>
+                    `;
+                    
+                    postElement.addEventListener('click', () => openBlogPost(post));
+                    container.appendChild(postElement);
                 });
             };
+
+            // Open blog post in modal
+            const openBlogPost = (post) => {
+                const modal = document.getElementById('blogModal');
+                const article = document.getElementById('blogArticle');
+                
+                // Configure marked options for security
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: false,
+                    mangle: false,
+                    sanitize: false, // We'll handle sanitization ourselves
+                    highlight: function(code, lang) {
+                        // Simple syntax highlighting
+                        return code;
+                    }
+                });
+                
+                // Render markdown
+                const htmlContent = marked.parse(post.markdown);
+                
+                // Basic XSS protection
+                const sanitizedContent = htmlContent
+                    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                    .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
+                    .replace(/on\w+\s*=\s*'[^']*'/gi, '');
+                
+                article.innerHTML = sanitizedContent;
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            };
+
+            // Close modal
+            document.getElementById('blogClose').addEventListener('click', () => {
+                document.getElementById('blogModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+
+            // Close modal on outside click
+            document.getElementById('blogModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('blogModal')) {
+                    document.getElementById('blogModal').style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            });
+
+            // Navigation scroll effect
+            const navbar = document.getElementById('navbar');
+            let lastScroll = 0;
+
+            window.addEventListener('scroll', () => {
+                const currentScroll = window.pageYOffset;
+                
+                if (currentScroll > 100) {
+                    navbar.classList.add('minimal');
+                } else {
+                    navbar.classList.remove('minimal');
+                }
+                
+                lastScroll = currentScroll;
+            }, { passive: true });
+
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    
+                    if (targetId && /^#[a-zA-Z0-9-_]+$/.test(targetId)) {
+                        const target = document.querySelector(targetId);
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Intersection Observer
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.section').forEach(section => {
+                observer.observe(section);
+            });
+
+            // Initialize everything when DOM is ready
+            const initialize = () => {
+                typeWriter();
+                loadBlogPosts();
+                
+                // Initialize Three.js DNA after ensuring library is loaded
+                if (typeof THREE !== 'undefined') {
+                    initThreeDNA();
+                } else {
+                    console.log('Waiting for Three.js to load...');
+                    // If Three.js isn't loaded yet, try again after a delay
+                    setTimeout(() => {
+                        if (typeof THREE !== 'undefined') {
+                            initThreeDNA();
+                        } else {
+                            console.error('Three.js failed to load');
+                        }
+                    }, 1000);
+                }
+            };
+
+            // Check if DOM is already loaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initialize);
+            } else {
+                // DOM is already loaded, initialize immediately
+                initialize();
+            }
+
+            // Cleanup on unload
+            window.addEventListener('beforeunload', () => {
+                if (observer) observer.disconnect();
+            });
+        })();
+    </script>
+            // Disable developer tools in production
+            const disableDevTools = () => {
+                // Disable right-click
+                document.addEventListener('contextmenu', e => e.preventDefault());
+                
+                // Disable key combinations
+                document.addEventListener('keydown', e => {
+                    if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) {
+                        e.preventDefault();
+                    }
+                    if (e.ctrlKey && e.keyCode === 85) {
+                        e.preventDefault();
+                    }
+                });
+            };
+
+            // Initialize security measures
+            if (window.location.hostname !== 'localhost') {
+                disableDevTools();
+            }
+
+            // Custom cursor
+            const cursor = document.getElementById('cursor');
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+
+            const updateCursor = () => {
+                const dx = mouseX - cursorX;
+                const dy = mouseY - cursorY;
+                
+                cursorX += dx * 0.1;
+                cursorY += dy * 0.1;
+                
+                cursor.style.transform = `translate(${cursorX - 10}px, ${cursorY - 10}px)`;
+                requestAnimationFrame(updateCursor);
+            };
+
+            document.addEventListener('mousemove', e => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            updateCursor();
+
+            // Typewriter effect
+            const typeWriter = () => {
+                const text = "REVERSE ENGINEER";
+                const element = document.getElementById('hero-text');
+                const cursor = document.getElementById('text-cursor');
+                let index = 0;
+
+                const type = () => {
+                    if (index < text.length) {
+                        element.textContent += text.charAt(index);
+                        index++;
+                        setTimeout(type, 80 + Math.random() * 40);
+                    } else {
+                        cursor.style.animation = 'blink 1s infinite';
+                    }
+                };
+
+                setTimeout(type, 1000);
+            };
+
+            // Three.js DNA Helix
+            const initThreeDNA = () => {
+                // Check if Three.js is loaded
+                if (typeof THREE === 'undefined') {
+                    console.error('Three.js not loaded');
+                    return;
+                }
+
+                const canvas = document.getElementById('dna-canvas');
+                const scene = new THREE.Scene();
+                scene.fog = new THREE.Fog(0x000000, 100, 1000);
+
+                // Camera
+                const camera = new THREE.PerspectiveCamera(
+                    75,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    1000
+                );
+                camera.position.z = 150;
+                camera.position.y = 0;
+
+                // Renderer
+                const renderer = new THREE.WebGLRenderer({
+                    canvas: canvas,
+                    antialias: true,
+                    alpha: true
+                });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setClearColor(0x000000, 0);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+                scene.add(ambientLight);
+
+                const pointLight1 = new THREE.PointLight(0xcc0020, 1, 200);
+                pointLight1.position.set(50, 50, 50);
+                scene.add(pointLight1);
+
+                const pointLight2 = new THREE.PointLight(0x00aa88, 1, 200);
+                pointLight2.position.set(-50, -50, -50);
+                scene.add(pointLight2);
+
+                // DNA Helix Group
+                const dnaGroup = new THREE.Group();
+                scene.add(dnaGroup);
+
+                // Code snippets for particles
+                const codeSnippets = {
+                    exploit: [
+                        'VirtualProtect',
+                        'NtAllocateVirtualMemory',
+                        'CreateRemoteThread',
+                        'WriteProcessMemory',
+                        'SetThreadContext'
+                    ],
+                    asm: [
+                        'mov rax, [gs:0x60]',
+                        'syscall',
+                        'xor rax, rax',
+                        'jmp qword ptr',
+                        'push rbp'
+                    ],
+                    graphics: [
+                        'glCreateShader',
+                        'vkCreatePipeline',
+                        'glDrawElements',
+                        'vkCmdBeginRenderPass',
+                        'glBindFramebuffer'
+                    ]
+                };
+
+                // Create DNA strands
+                const strandCount = 50;
+                const radius = 30;
+                const height = 300;
+                const strands = [];
+
+                // Materials for different code types
+                const materials = {
+                    exploit: new THREE.MeshPhongMaterial({
+                        color: 0xcc0020,
+                        emissive: 0x440000,
+                        shininess: 100,
+                        transparent: true,
+                        opacity: 0.9
+                    }),
+                    asm: new THREE.MeshPhongMaterial({
+                        color: 0x00aa88,
+                        emissive: 0x004400,
+                        shininess: 100,
+                        transparent: true,
+                        opacity: 0.9
+                    }),
+                    graphics: new THREE.MeshPhongMaterial({
+                        color: 0x00cc41,
+                        emissive: 0x004400,
+                        shininess: 100,
+                        transparent: true,
+                        opacity: 0.9
+                    })
+                };
+
+                // Create spheres for DNA backbone
+                for (let i = 0; i < strandCount; i++) {
+                    const t = (i / strandCount) * Math.PI * 4;
+                    const y = (i / strandCount) * height - height / 2;
+
+                    // Left strand
+                    const leftX = Math.sin(t) * radius;
+                    const leftZ = Math.cos(t) * radius;
+
+                    const leftGeometry = new THREE.SphereGeometry(3, 16, 16);
+                    const leftType = i % 3 === 0 ? 'exploit' : i % 3 === 1 ? 'asm' : 'graphics';
+                    const leftSphere = new THREE.Mesh(leftGeometry, materials[leftType]);
+                    leftSphere.position.set(leftX, y, leftZ);
+                    dnaGroup.add(leftSphere);
+                    strands.push({ mesh: leftSphere, type: leftType });
+
+                    // Right strand
+                    const rightX = Math.sin(t + Math.PI) * radius;
+                    const rightZ = Math.cos(t + Math.PI) * radius;
+
+                    const rightGeometry = new THREE.SphereGeometry(3, 16, 16);
+                    const rightType = i % 3 === 2 ? 'exploit' : i % 3 === 0 ? 'asm' : 'graphics';
+                    const rightSphere = new THREE.Mesh(rightGeometry, materials[rightType]);
+                    rightSphere.position.set(rightX, y, rightZ);
+                    dnaGroup.add(rightSphere);
+                    strands.push({ mesh: rightSphere, type: rightType });
+
+                    // Connectors
+                    if (i % 3 === 0) {
+                        const connectorGeometry = new THREE.CylinderGeometry(0.5, 0.5, radius * 2, 8);
+                        const connectorMaterial = new THREE.MeshPhongMaterial({
+                            color: 0xcc0020,
+                            emissive: 0x220000,
+                            transparent: true,
+                            opacity: 0.3
+                        });
+                        const connector = new THREE.Mesh(connectorGeometry, connectorMaterial);
+                        connector.position.set(0, y, 0);
+                        connector.rotation.z = Math.PI / 2;
+                        connector.rotation.y = t;
+                        dnaGroup.add(connector);
+                    }
+                }
+
+                // Create floating code particles
+                const particleCount = 20;
+                const particles = [];
+                const loader = new THREE.FontLoader();
+                
+                // Use simple boxes for text representation
+                for (let i = 0; i < particleCount; i++) {
+                    const type = ['exploit', 'asm', 'graphics'][Math.floor(Math.random() * 3)];
+                    const geometry = new THREE.BoxGeometry(20, 3, 0.5);
+                    const material = new THREE.MeshPhongMaterial({
+                        color: type === 'exploit' ? 0xcc0020 : type === 'asm' ? 0x00aa88 : 0x00cc41,
+                        emissive: type === 'exploit' ? 0x440000 : type === 'asm' ? 0x004444 : 0x004400,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    
+                    const particle = new THREE.Mesh(geometry, material);
+                    particle.position.set(
+                        (Math.random() - 0.5) * 200,
+                        (Math.random() - 0.5) * 300,
+                        (Math.random() - 0.5) * 100
+                    );
+                    particle.rotation.set(
+                        Math.random() * Math.PI,
+                        Math.random() * Math.PI,
+                        Math.random() * Math.PI
+                    );
+                    
+                    particles.push({
+                        mesh: particle,
+                        velocity: {
+                            x: (Math.random() - 0.5) * 0.2,
+                            y: (Math.random() - 0.5) * 0.2,
+                            z: (Math.random() - 0.5) * 0.2
+                        },
+                        rotationSpeed: {
+                            x: (Math.random() - 0.5) * 0.01,
+                            y: (Math.random() - 0.5) * 0.01,
+                            z: (Math.random() - 0.5) * 0.01
+                        }
+                    });
+                    
+                    scene.add(particle);
+                }
+
+                // Animation
+                const animate = () => {
+                    requestAnimationFrame(animate);
+
+                    // Rotate DNA
+                    dnaGroup.rotation.y += 0.005;
+
+                    // Animate strands with sine wave
+                    strands.forEach((strand, i) => {
+                        const time = Date.now() * 0.001;
+                        strand.mesh.scale.x = 1 + Math.sin(time + i * 0.1) * 0.2;
+                        strand.mesh.scale.y = 1 + Math.sin(time + i * 0.1) * 0.2;
+                        strand.mesh.scale.z = 1 + Math.sin(time + i * 0.1) * 0.2;
+                    });
+
+                    // Animate particles
+                    particles.forEach(particle => {
+                        particle.mesh.position.x += particle.velocity.x;
+                        particle.mesh.position.y += particle.velocity.y;
+                        particle.mesh.position.z += particle.velocity.z;
+
+                        particle.mesh.rotation.x += particle.rotationSpeed.x;
+                        particle.mesh.rotation.y += particle.rotationSpeed.y;
+                        particle.mesh.rotation.z += particle.rotationSpeed.z;
+
+                        // Wrap around
+                        if (particle.mesh.position.x > 100) particle.mesh.position.x = -100;
+                        if (particle.mesh.position.x < -100) particle.mesh.position.x = 100;
+                        if (particle.mesh.position.y > 150) particle.mesh.position.y = -150;
+                        if (particle.mesh.position.y < -150) particle.mesh.position.y = 150;
+                        if (particle.mesh.position.z > 50) particle.mesh.position.z = -50;
+                        if (particle.mesh.position.z < -50) particle.mesh.position.z = 50;
+                    });
+
+                    // Glitch effect occasionally
+                    if (Math.random() < 0.01) {
+                        const glitchStrand = strands[Math.floor(Math.random() * strands.length)];
+                        glitchStrand.mesh.scale.set(2, 2, 2);
+                        setTimeout(() => {
+                            glitchStrand.mesh.scale.set(1, 1, 1);
+                        }, 100);
+                    }
+
+                    renderer.render(scene, camera);
+                };
+
+                // Handle resize
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                // Mouse interaction
+                let mouseX = 0;
+                let mouseY = 0;
+
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+                    
+                    camera.position.x = mouseX * 30;
+                    camera.position.y = mouseY * 30;
+                    camera.lookAt(scene.position);
+                });
+
+                animate();
+            };
+
+            // Remove old DNA creation function call and replace with Three.js
+            // createDNAHelix(); // Remove this line
+
+            // Blog System
+            const blogPosts = [
+                {
+                    id: 1,
+                    date: '2025-01-15',
+                    title: 'Advanced ROP Chain Construction',
+                    excerpt: 'Deep dive into Return-Oriented Programming techniques for modern Windows systems with CFG enabled...',
+                    tags: ['exploit-dev', 'windows', 'rop'],
+                    markdown: `# Advanced ROP Chain Construction
+
+## Introduction
+
+Return-Oriented Programming (ROP) remains one of the most powerful exploitation techniques for bypassing modern security mitigations. This post explores advanced ROP chain construction techniques for Windows 10/11 systems with Control Flow Guard (CFG) enabled.
+
+## Understanding the Basics
+
+ROP allows us to execute arbitrary code by chaining together small sequences of instructions (gadgets) that end with a return instruction. Here's a basic example:
+
+\`\`\`asm
+; Classic ROP gadget
+pop rdi
+ret
+
+; Another useful gadget
+mov rax, rdi
+ret
+\`\`\`
+
+## Finding Gadgets
+
+The first step in ROP chain construction is identifying useful gadgets. I use a custom tool written in C++ that leverages the Capstone disassembly engine:
+
+\`\`\`cpp
+void find_gadgets(uint8_t* module_base, size_t module_size) {
+    cs_insn *insn;
+    size_t count;
+    
+    if (cs_disasm(handle, module_base, module_size, 0, 0, &insn, &count) > 0) {
+        for (size_t i = 0; i < count; i++) {
+            if (is_gadget_useful(&insn[i])) {
+                store_gadget(&insn[i]);
+            }
+        }
+        cs_free(insn, count);
+    }
+}
+\`\`\`
+
+## Bypassing CFG
+
+Control Flow Guard presents unique challenges for ROP exploitation. The key is to identify CFG-valid indirect call targets...
+
+[Continue with more technical content]`
+                },
+                {
+                    id: 2,
+                    date: '2025-01-10',
+                    title: 'Vulkan Memory Management Internals',
+                    excerpt: 'Exploring efficient memory allocation strategies for high-performance Vulkan applications...',
+                    tags: ['graphics', 'vulkan', 'optimization'],
+                    markdown: `# Vulkan Memory Management Internals
+
+Understanding Vulkan's memory management is crucial for high-performance graphics applications...`
+                },
+                {
+                    id: 3,
+                    date: '2025-01-05',
+                    title: 'Kernel Driver Fuzzing Techniques',
+                    excerpt: 'Automated vulnerability discovery in Windows kernel drivers using coverage-guided fuzzing...',
+                    tags: ['fuzzing', 'kernel', 'windows'],
+                    markdown: `# Kernel Driver Fuzzing Techniques
+
+This post covers advanced techniques for fuzzing Windows kernel drivers...`
+                }
+            ];
+
+            // Load blog posts
+            const loadBlogPosts = () => {
+                const container = document.getElementById('blog-container');
+                container.innerHTML = '';
+                
+                blogPosts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'blog-post';
+                    postElement.innerHTML = `
+                        <div class="blog-date">${post.date}</div>
+                        <h3 class="blog-title">${post.title}</h3>
+                        <p class="blog-excerpt">${post.excerpt}</p>
+                        <div class="blog-tags">
+                            ${post.tags.map(tag => `<span class="blog-tag">#${tag}</span>`).join('')}
+                        </div>
+                    `;
+                    
+                    postElement.addEventListener('click', () => openBlogPost(post));
+                    container.appendChild(postElement);
+                });
+            };
+
+            // Open blog post in modal
+            const openBlogPost = (post) => {
+                const modal = document.getElementById('blogModal');
+                const article = document.getElementById('blogArticle');
+                
+                // Configure marked options for security
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: false,
+                    mangle: false,
+                    sanitize: false, // We'll handle sanitization ourselves
+                    highlight: function(code, lang) {
+                        // Simple syntax highlighting
+                        return code;
+                    }
+                });
+                
+                // Render markdown
+                const htmlContent = marked.parse(post.markdown);
+                
+                // Basic XSS protection
+                const sanitizedContent = htmlContent
+                    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                    .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
+                    .replace(/on\w+\s*=\s*'[^']*'/gi, '');
+                
+                article.innerHTML = sanitizedContent;
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            };
+
+            // Close modal
+            document.getElementById('blogClose').addEventListener('click', () => {
+                document.getElementById('blogModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+
+            // Close modal on outside click
+            document.getElementById('blogModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('blogModal')) {
+                    document.getElementById('blogModal').style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            });
 
             // Navigation scroll effect
             const navbar = document.getElementById('navbar');
@@ -1120,14 +2237,15 @@
             // Initialize
             document.addEventListener('DOMContentLoaded', () => {
                 typeWriter();
-                createDNAHelix();
+                initThreeDNA();
+                loadBlogPosts();
             });
 
             // Cleanup on unload
             window.addEventListener('beforeunload', () => {
                 observer.disconnect();
             });
-        })();
+        });
     </script>
 </body>
 </html>
