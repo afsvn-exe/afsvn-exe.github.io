@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Biotech Security Division - Systems Research">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+    <title>REVERSE ENGINEER | Biotech Security Division</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #050505;
+            --text-primary: #ffffff;
+            --text-secondary: #4a4a4a;
+            --accent-red: #cc0020;
+            --accent-green: #00cc41;
+            --accent-bio: #00aa88;
+            --border: rgba(255, 255, 255, 0.03);
+            --glow-intensity: 0.5;
+        }
+
+        body {
+            font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            cursor: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--accent-red);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transition: all 0.1s ease;
+            mix-blend-mode: difference;
+        }
+
+        .cursor::after {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Allow text selection in content areas */
+        .about-text, .project-description, .module-list {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+            cursor: text;
+        }
+
+        /* Minimal grid overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 0, 32, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 32, 0.01) 1px, transparent 1px);
+            background-size: 100px 100px;
+            z-index: -2;
+            opacity: 0.3;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, rgba(204, 0, 32, 0.02) 0%, transparent 50%);
+        }
+
+        /* DNA Container */
+        .dna-wrapper {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .dna-container {
+            width: 600px;
+            height: 800px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotateHelix 40s linear infinite;
+        }
+
+        @keyframes rotateHelix {
+            0% { transform: rotateY(0deg) rotateX(15deg); }
+            100% { transform: rotateY(360deg) rotateX(15deg); }
+        }
+
+        .helix-strand {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .code-particle {
+            position: absolute;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 10px;
+            padding: 2px 6px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            white-space: nowrap;
+            opacity: 0;
+            animation: particleFade 4s ease-in-out infinite;
+            pointer-events: none;
+            border: 1px solid;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes particleFade {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 0.8; transform: scale(1); }
+        }
+
+        .code-particle.exploit {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+            text-shadow: 0 0 10px rgba(204, 0, 32, var(--glow-intensity));
+        }
+
+        .code-particle.asm {
+            color: var(--accent-bio);
+            border-color: var(--accent-bio);
+            text-shadow: 0 0 10px rgba(0, 170, 136, var(--glow-intensity));
+        }
+
+        .code-particle.graphics {
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+            text-shadow: 0 0 10px rgba(0, 204, 65, var(--glow-intensity));
+        }
+
+        /* Glitch effect for particles */
+        @keyframes glitch {
+            0%, 100% {
+                transform: translate(0);
+                filter: hue-rotate(0deg);
+            }
+            20% {
+                transform: translate(-1px, 1px);
+                filter: hue-rotate(90deg);
+            }
+            40% {
+                transform: translate(1px, -1px);
+                filter: hue-rotate(180deg);
+            }
+            60% {
+                transform: translate(-1px, -1px);
+                filter: hue-rotate(270deg);
+            }
+            80% {
+                transform: translate(1px, 1px);
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        .code-particle.glitch {
+            animation: particleFade 4s ease-in-out infinite, glitch 0.2s ease infinite;
+        }
+
+        .helix-connector {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(204, 0, 32, 0.3),
+                rgba(0, 204, 65, 0.3),
+                transparent);
+            transform-origin: left center;
+            opacity: 0.3;
+        }
+
+        /* Hero Content */
+        .hero-content {
+            position: relative;
+            text-align: center;
+            z-index: 10;
+            padding: 60px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px) saturate(0.8);
+            -webkit-backdrop-filter: blur(20px) saturate(0.8);
+            border: 1px solid var(--border);
+            max-width: 800px;
+        }
+
+        .corp-logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            opacity: 0.2;
+            transition: opacity 0.3s ease;
+        }
+
+        .corp-logo:hover {
+            opacity: 0.4;
+        }
+
+        .biohazard-symbol {
+            width: 100%;
+            height: 100%;
+            fill: var(--accent-red);
+            filter: drop-shadow(0 0 5px rgba(204, 0, 32, 0.5));
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 100;
+            letter-spacing: 0.8rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-title .text {
+            display: inline-block;
+        }
+
+        .hero-title .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: var(--accent-red);
+            margin-left: 5px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .hero-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.3rem;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        .tech-item {
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .tech-item:hover {
+            color: var(--accent-red);
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px) saturate(0.8);
+            -webkit-backdrop-filter: blur(10px) saturate(0.8);
+            padding: 20px 50px;
+            transition: all 0.3s ease;
+        }
+
+        nav.minimal {
+            padding: 15px 50px;
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.2rem;
+            opacity: 0.8;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 0.1rem;
+            text-transform: uppercase;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent-red);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Content */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 50px;
+        }
+
+        .section {
+            margin-bottom: 120px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .section-number {
+            font-size: 0.7rem;
+            color: var(--accent-red);
+            margin-right: 20px;
+            font-family: 'SF Mono', monospace;
+            opacity: 0.6;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 100;
+            letter-spacing: 0.3rem;
+            text-transform: uppercase;
+        }
+
+        .section-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+            margin-left: 30px;
+        }
+
+        /* About Section */
+        .about-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 60px;
+            align-items: start;
+        }
+
+        .about-text {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .about-text strong {
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        .clearance-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 30px;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .clearance-header {
+            color: var(--accent-red);
+            font-size: 0.7rem;
+            letter-spacing: 0.2rem;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .clearance-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+        }
+
+        .clearance-item:last-child {
+            border-bottom: none;
+        }
+
+        .clearance-value {
+            color: var(--accent-bio);
+        }
+
+        /* Skills Grid - Minimal Cards */
+        .skills-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .skill-module {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 35px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-module::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 1px;
+            background: var(--accent-red);
+            transition: left 0.5s ease;
+        }
+
+        .skill-module:hover {
+            border-color: rgba(204, 0, 32, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .skill-module:hover::before {
+            left: 0;
+        }
+
+        .module-icon {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            opacity: 0.6;
+        }
+
+        .module-title {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            font-weight: 300;
+        }
+
+        .module-list {
+            list-style: none;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* Projects - Minimal Design */
+        .project-grid {
+            display: grid;
+            gap: 30px;
+        }
+
+        .project-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 40px;
+            transition: all 0.3s ease;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .project-card:hover {
+            border-color: rgba(204, 0, 32, 0.3);
+            transform: translateX(5px);
+        }
+
+        .project-icon {
+            font-size: 2rem;
+            color: var(--accent-red);
+            opacity: 0.6;
+        }
+
+        .project-content h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+            letter-spacing: 0.1rem;
+        }
+
+        .project-meta {
+            font-size: 0.8rem;
+            color: var(--accent-red);
+            margin-bottom: 15px;
+            font-family: 'SF Mono', monospace;
+            opacity: 0.7;
+        }
+
+        .project-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .tech-stack-inline {
+            display: flex;
+            gap: 15px;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Contact - Ultra Minimal */
+        .contact-container {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 50px;
+        }
+
+        .contact-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .contact-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent-red);
+            transition: width 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: var(--accent-red);
+        }
+
+        .contact-link:hover::after {
+            width: 100%;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            letter-spacing: 0.1rem;
+            opacity: 0.5;
+        }
+
+        /* Security: Disable drag and right-click */
+        img, svg {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            pointer-events: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .skills-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+                letter-spacing: 0.3rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .skills-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .project-card {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .tech-stack {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Prevent console access */
+        @media print {
+            body { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor" id="cursor"></div>
+
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="logo">BSD</div>
+            <ul class="nav-links">
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#skills" class="nav-link">Skills</a></li>
+                <li><a href="#projects" class="nav-link">Projects</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="dna-wrapper">
+            <div class="dna-container" id="dna-container">
+                <div class="helix-strand" id="helix-strand">
+                    <!-- DNA particles will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="hero-content">
+            <div class="corp-logo">
+                <svg class="biohazard-symbol" viewBox="0 0 100 100" aria-hidden="true">
+                    <path d="M50 30 C40 30, 30 20, 30 10 C30 5, 35 0, 40 0 C45 0, 50 5, 50 10 C50 5, 55 0, 60 0 C65 0, 70 5, 70 10 C70 20, 60 30, 50 30 Z" fill="currentColor" transform="rotate(0 50 50)"/>
+                    <path d="M50 30 C40 30, 30 20, 30 10 C30 5, 35 0, 40 0 C45 0, 50 5, 50 10 C50 5, 55 0, 60 0 C65 0, 70 5, 70 10 C70 20, 60 30, 50 30 Z" fill="currentColor" transform="rotate(120 50 50)"/>
+                    <path d="M50 30 C40 30, 30 20, 30 10 C30 5, 35 0, 40 0 C45 0, 50 5, 50 10 C50 5, 55 0, 60 0 C65 0, 70 5, 70 10 C70 20, 60 30, 50 30 Z" fill="currentColor" transform="rotate(240 50 50)"/>
+                    <circle cx="50" cy="50" r="8" fill="currentColor"/>
+                </svg>
+            </div>
+            <h1 class="hero-title">
+                <span class="text" id="hero-text"></span>
+                <span class="cursor" id="text-cursor"></span>
+            </h1>
+            <p class="hero-subtitle">Systems Research Division</p>
+            <div class="tech-stack">
+                <span class="tech-item">C/C++</span>
+                <span class="tech-item">x86/x64 ASM</span>
+                <span class="tech-item">Graphics</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="content">
+        <section id="about" class="section">
+            <div class="section-header">
+                <span class="section-number">01</span>
+                <h2 class="section-title">Profile</h2>
+                <div class="section-line"></div>
+            </div>
+            
+            <div class="about-content">
+                <div class="about-text">
+                    <p>Systems programmer specializing in low-level development with <strong>C/C++</strong> and <strong>x86/x64 Assembly</strong>. Focus on reverse engineering, exploit development, and high-performance graphics programming.</p>
+                    <br>
+                    <p>Expert in binary analysis, vulnerability research, and secure systems development. Deep understanding of processor architectures, memory management, and optimization techniques.</p>
+                    <br>
+                    <p>Graphics programming expertise includes real-time rendering, shader development, and GPU optimization using modern APIs. All development follows strict security protocols and defensive programming practices.</p>
+                </div>
+                
+                <div class="clearance-card">
+                    <div class="clearance-header">CLEARANCE LEVEL 5</div>
+                    <div class="clearance-item">
+                        <span>Division</span>
+                        <span class="clearance-value">Systems Research</span>
+                    </div>
+                    <div class="clearance-item">
+                        <span>Languages</span>
+                        <span class="clearance-value">C/C++, ASM</span>
+                    </div>
+                    <div class="clearance-item">
+                        <span>Focus</span>
+                        <span class="clearance-value">Exploitation</span>
+                    </div>
+                    <div class="clearance-item">
+                        <span>Status</span>
+                        <span class="clearance-value">Active</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills" class="section">
+            <div class="section-header">
+                <span class="section-number">02</span>
+                <h2 class="section-title">Capabilities</h2>
+                <div class="section-line"></div>
+            </div>
+            
+            <div class="skills-container">
+                <div class="skill-module">
+                    <div class="module-icon">⚙</div>
+                    <h3 class="module-title">Reverse Engineering</h3>
+                    <ul class="module-list">
+                        <li>Binary Analysis</li>
+                        <li>Protocol Research</li>
+                        <li>Firmware Extraction</li>
+                        <li>Anti-Debug Bypass</li>
+                    </ul>
+                </div>
+                
+                <div class="skill-module">
+                    <div class="module-icon">⚡</div>
+                    <h3 class="module-title">Exploit Development</h3>
+                    <ul class="module-list">
+                        <li>Memory Corruption</li>
+                        <li>ROP/JOP Chains</li>
+                        <li>Kernel Exploitation</li>
+                        <li>Mitigation Bypass</li>
+                    </ul>
+                </div>
+                
+                <div class="skill-module">
+                    <div class="module-icon">◈</div>
+                    <h3 class="module-title">Graphics Programming</h3>
+                    <ul class="module-list">
+                        <li>OpenGL/Vulkan</li>
+                        <li>Shader Development</li>
+                        <li>GPU Optimization</li>
+                        <li>Rendering Engines</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="section">
+            <div class="section-header">
+                <span class="section-number">03</span>
+                <h2 class="section-title">Projects</h2>
+                <div class="section-line"></div>
+            </div>
+            
+            <div class="project-grid">
+                <div class="project-card">
+                    <div class="project-icon">◢</div>
+                    <div class="project-content">
+                        <h3>Binary Analysis Framework</h3>
+                        <div class="project-meta">NEMESIS</div>
+                        <p class="project-description">
+                            Automated vulnerability discovery system with control flow analysis and symbolic execution. Custom disassembly engine written in C++.
+                        </p>
+                        <div class="tech-stack-inline">
+                            <span>C++17</span>
+                            <span>x64 ASM</span>
+                            <span>IDA SDK</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-icon">◣</div>
+                    <div class="project-content">
+                        <h3>Kernel Exploitation Suite</h3>
+                        <div class="project-meta">CERBERUS</div>
+                        <p class="project-description">
+                            Windows kernel research toolkit featuring KASLR bypass and privilege escalation primitives. Pure C implementation with inline assembly.
+                        </p>
+                        <div class="tech-stack-inline">
+                            <span>C</span>
+                            <span>x64 ASM</span>
+                            <span>WDK</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-icon">◤</div>
+                    <div class="project-content">
+                        <h3>Vulkan Rendering Engine</h3>
+                        <div class="project-meta">HELIOS</div>
+                        <p class="project-description">
+                            High-performance graphics engine with physically-based rendering and real-time ray tracing. Optimized for minimal draw calls.
+                        </p>
+                        <div class="tech-stack-inline">
+                            <span>C++20</span>
+                            <span>Vulkan</span>
+                            <span>GLSL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="section">
+            <div class="section-header">
+                <span class="section-number">04</span>
+                <h2 class="section-title">Contact</h2>
+                <div class="section-line"></div>
+            </div>
+            
+            <div class="contact-container">
+                <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 20px;">
+                    Available for security research and systems programming projects.
+                </p>
+                
+                <div class="contact-links">
+                    <a href="mailto:secure@example.com" class="contact-link" rel="noopener">Email</a>
+                    <a href="https://github.com/yourusername" class="contact-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://linkedin.com/in/yourusername" class="contact-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>BIOTECH SECURITY DIVISION © 2025</p>
+    </footer>
+
+    <script>
+        'use strict';
+
+        // Secure initialization
+        (function() {
+            // Disable developer tools in production
+            const disableDevTools = () => {
+                // Disable right-click
+                document.addEventListener('contextmenu', e => e.preventDefault());
+                
+                // Disable key combinations
+                document.addEventListener('keydown', e => {
+                    if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) {
+                        e.preventDefault();
+                    }
+                    if (e.ctrlKey && e.keyCode === 85) {
+                        e.preventDefault();
+                    }
+                });
+            };
+
+            // Initialize security measures
+            if (window.location.hostname !== 'localhost') {
+                disableDevTools();
+            }
+
+            // Custom cursor
+            const cursor = document.getElementById('cursor');
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+
+            const updateCursor = () => {
+                const dx = mouseX - cursorX;
+                const dy = mouseY - cursorY;
+                
+                cursorX += dx * 0.1;
+                cursorY += dy * 0.1;
+                
+                cursor.style.transform = `translate(${cursorX - 10}px, ${cursorY - 10}px)`;
+                requestAnimationFrame(updateCursor);
+            };
+
+            document.addEventListener('mousemove', e => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            updateCursor();
+
+            // Typewriter effect
+            const typeWriter = () => {
+                const text = "REVERSE ENGINEER";
+                const element = document.getElementById('hero-text');
+                const cursor = document.getElementById('text-cursor');
+                let index = 0;
+
+                const type = () => {
+                    if (index < text.length) {
+                        element.textContent += text.charAt(index);
+                        index++;
+                        setTimeout(type, 80 + Math.random() * 40);
+                    } else {
+                        cursor.style.animation = 'blink 1s infinite';
+                    }
+                };
+
+                setTimeout(type, 1000);
+            };
+
+            // DNA Helix with infinite loop and glitch
+            const createDNAHelix = () => {
+                const container = document.getElementById('helix-strand');
+                const codeSnippets = {
+                    exploit: [
+                        'VirtualProtect(addr, size, PAGE_EXECUTE_READWRITE, &old);',
+                        'NtAllocateVirtualMemory(process, &base, 0, &size, MEM_COMMIT, PAGE_EXECUTE);',
+                        'mov rax, [gs:0x60]; mov rcx, [rax+0x18];',
+                        'CreateRemoteThread(hProcess, NULL, 0, addr, param, 0, NULL);',
+                        'RtlCopyMemory(buffer, shellcode, sizeof(shellcode));'
+                    ],
+                    asm: [
+                        'push rbp; mov rbp, rsp',
+                        'syscall',
+                        'xor rax, rax; ret',
+                        'jmp qword ptr [rax]',
+                        'mov cr0, rax'
+                    ],
+                    graphics: [
+                        'glCreateShader(GL_FRAGMENT_SHADER);',
+                        'vkCreateGraphicsPipelines(device, cache, 1, &info, NULL, &pipeline);',
+                        'glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);',
+                        'vkCmdBeginRenderPass(cmd, &info, VK_SUBPASS_CONTENTS_INLINE);',
+                        'glBindFramebuffer(GL_FRAMEBUFFER, fbo);'
+                    ]
+                };
+
+                const numParticles = 36;
+                const radius = 200;
+
+                // Create particles for continuous helix
+                for (let i = 0; i < numParticles; i++) {
+                    const angle = (i / numParticles) * Math.PI * 4;
+                    const y = (i / numParticles) * 800;
+                    
+                    // Three strands
+                    for (let strand = 0; strand < 3; strand++) {
+                        const strandAngle = angle + (strand * 2 * Math.PI / 3);
+                        const x = Math.sin(strandAngle) * radius;
+                        const z = Math.cos(strandAngle) * radius;
+                        
+                        const particle = document.createElement('div');
+                        particle.className = 'code-particle';
+                        
+                        // Assign code type
+                        let codeType, snippets;
+                        if (strand === 0) {
+                            codeType = 'exploit';
+                            snippets = codeSnippets.exploit;
+                        } else if (strand === 1) {
+                            codeType = 'asm';
+                            snippets = codeSnippets.asm;
+                        } else {
+                            codeType = 'graphics';
+                            snippets = codeSnippets.graphics;
+                        }
+                        
+                        particle.classList.add(codeType);
+                        particle.textContent = snippets[i % snippets.length];
+                        
+                        // Position
+                        particle.style.left = `${300 + x}px`;
+                        particle.style.top = `${y}px`;
+                        particle.style.transform = `translateZ(${z}px)`;
+                        
+                        // Stagger animations
+                        particle.style.animationDelay = `${(i / numParticles) * 4}s`;
+                        
+                        // Random glitch effect
+                        if (Math.random() < 0.1) {
+                            particle.classList.add('glitch');
+                        }
+                        
+                        container.appendChild(particle);
+                    }
+                    
+                    // Add connectors
+                    if (i % 3 === 0) {
+                        const connector = document.createElement('div');
+                        connector.className = 'helix-connector';
+                        connector.style.width = `${radius * 2}px`;
+                        connector.style.left = `${300 - radius}px`;
+                        connector.style.top = `${y}px`;
+                        connector.style.transform = `rotateY(${angle}rad)`;
+                        container.appendChild(connector);
+                    }
+                }
+
+                // Clone particles for seamless loop
+                const particles = container.querySelectorAll('.code-particle');
+                particles.forEach(particle => {
+                    const clone = particle.cloneNode(true);
+                    const currentTop = parseFloat(particle.style.top);
+                    clone.style.top = `${currentTop + 800}px`;
+                    container.appendChild(clone);
+                });
+            };
+
+            // Navigation scroll effect
+            const navbar = document.getElementById('navbar');
+            let lastScroll = 0;
+
+            window.addEventListener('scroll', () => {
+                const currentScroll = window.pageYOffset;
+                
+                if (currentScroll > 100) {
+                    navbar.classList.add('minimal');
+                } else {
+                    navbar.classList.remove('minimal');
+                }
+                
+                lastScroll = currentScroll;
+            }, { passive: true });
+
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    
+                    if (targetId && /^#[a-zA-Z0-9-_]+$/.test(targetId)) {
+                        const target = document.querySelector(targetId);
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Intersection Observer
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.section').forEach(section => {
+                observer.observe(section);
+            });
+
+            // Initialize
+            document.addEventListener('DOMContentLoaded', () => {
+                typeWriter();
+                createDNAHelix();
+            });
+
+            // Cleanup on unload
+            window.addEventListener('beforeunload', () => {
+                observer.disconnect();
+            });
+        })();
+    </script>
+</body>
+</html>
